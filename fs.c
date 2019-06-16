@@ -677,3 +677,7 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+
+struct inode* get_inode_array(void){
+  return &icache;
+}
