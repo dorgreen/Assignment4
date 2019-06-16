@@ -166,3 +166,28 @@ iderw(struct buf *b)
 
   release(&idelock);
 }
+
+
+//Waiting operations: <Number of waiting operations starting from idequeue>
+//Read waiting operations: <Number of read operations>
+//Write waiting operations: <Number of write operations>
+//Working blocks: <List (#device,#block) that are currently in the queue separated by the ‘;’
+int get_ideinfo(char *buff){
+  // TODO: IMPLEMENT!!!!
+//  struct buf* queue_item = idequeue;
+//  int read_wait = 0;
+//  int write_wait = 0;
+//  int wait_ops = 0;
+//  int working_blocks = 0;
+  // queue_item to the buf now being read/written to the disk.
+  // queue_item->gnext is the next one to be proccessed
+//    B_VALID == 0 ===> read_wait++
+//    B_DIRTY == 1 ===> write_wait++
+
+//    while(1){
+//        if(queue_item != 0){
+//
+//        }
+//    }
+  return 0;
+}

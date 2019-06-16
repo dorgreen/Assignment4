@@ -13,25 +13,21 @@
 #include "x86.h"
 
 // Counter
-int nindoes = 0;
+int ninodes = 0;
 
 // Each type of command is handled by a different function of type procfs_handler
-typedef int *(procfs_handler)(char*);
+typedef int (*procfs_handler)(char*);
 // this function maps an inode to the appropriate handler
 procfs_handler get_handler(struct inode *ip);
 
 // these are the handlers
-int handle_ideinfo(char *buff);
-int handle_filestat(char *buff);
-int handle_inodeinfo(char *buff);
-int handle_pid_dirent(char *buff); // creates the PID's dir with both name and status
-
-
-// Helper functions for string handling
-void buff_append(char *buff, char *data);
-void buff_append_num(char *buff, int data);
-void buff_append_dirent(char *buff, char * dir, int inum, int dir_offset);
-void itoa(char* string, int num); // Num to string. maybe use .format instead
+int handle_ideinfo(char *buff); // Creates the file proc/ideinfo and fills it
+int handle_filestat(char *buff); // Creates the file proc/filestat
+int handle_inodeinfo(char *buff); // Creates the directory proc/inodeinfo and a file for each inode
+int handle_pid_dirent(char *buff); // Creates the PID's dir with files "name" and "status"
+int handler_null(char *buff){
+    return 0;
+}
 
 // Helper functions for getting data
 int get_pid(void); // might have a different signature
@@ -48,66 +44,76 @@ void init_ninodes(struct inode *ip){
   return;
 }
 
+// TODO: IMPLEMENT WHEN WE KNOW HOW TO DO THE MAPPINGS!
+procfs_handler get_handler(struct inode *ip) {
+    return handler_null;
+}
+
+
+// A FILE containing:
 //Waiting operations: <Number of waiting operations starting from idequeue>
 //Read waiting operations: <Number of read operations>
 //Write waiting operations: <Number of write operations>
 //Working blocks: <List (#device,#block) that are currently in the queue separated by the ‘;’
 // TODO: IMPLEMENT
 int handle_ideinfo(char *buff){
-    // working blocks from BIO.c?
+
+    // TODO: FINISH IMPLEMATION IN ide.c
+//    int chars_used = get_ideinfo(buff);
+    // TODO: FINISH THIS IMPLEMANTATION
     return 0;
 }
 
-// From FD table: proc->ofile[]
-//Free fds: <free fd number (ref = 0)>
-//Unique inode fds: <Number of different inodes open by all the fds>
-//Writeable fds: <Writable fd number>
-//Readable fds: <Readable fd number>
-//Refs per fds: <ratio of total number of refs / number of used fds>
+//a FILE with data from FD table: proc->ofile[]
+//  Free fds: <free fd number (ref = 0)>
+//  Unique inode fds: <Number of different inodes open by all the fds>
+//  Writeable fds: <Writable fd number>
+//  Readable fds: <Readable fd number>
+//  Refs per fds: <ratio of total number of refs / number of used fds>
 // TODO: IMPLEMENT
 // TODO: SHOULD WE USE THE STRUCT STAT (stat.h) here? fill it with filestat()
 int handle_filestat(char *buff){
-    int pid = get_pid();
-    struct proc* p = get_proc(); // TODO: IMPLEMENT!
-
-
-    // Data to calculate the fields to print
-    int free_fds = 0;
-    int writeable_fds = 0;
-    int readable_fds = 0;
-    int total_refs = 0;
-    int unique_inode = 0;
-    struct inode* used_inodes[16];
-
-    // Fill in this data
-    struct file* proc_file = 0;
-    struct stat st;
-    for(int i = 0 ; i < 16 ; i++){
-       proc_file = p->ofile[i];
-        if(proc_file == 0 || proc_file->type == FD_NONE){
-            free_fds++;
-        }
-        else{
-            filestat(proc_file, &st); // fill st with data about proc_file
-            total_refs += st.nlink;
-            //total_refs += proc_file->ref; // TODO: st.nlink or proc_file->ref ?
-
-            if(proc_file->readable) readable_fds++;
-            if(proc_file->writable) writeable_fds++;
-            // Find out if inode is unique
-            int unique = 1;
-            for(int j = 0 ; j < i ; j++){
-                if(used_inodes[j] == proc_file->ip){
-                    unique = 0;
-                    break;
-                }
-            }
-            if(unique){
-                used_inodes[i] = proc_file->ip;
-                unique_inode++;
-            }
-        }
-    }
+//    int pid = get_pid();
+//    struct proc* p = get_proc(); // TODO: IMPLEMENT!
+//
+//
+//    // Data to calculate the fields to print
+//    int free_fds = 0;
+//    int writeable_fds = 0;
+//    int readable_fds = 0;
+//    int total_refs = 0;
+//    int unique_inode = 0;
+//    struct inode* used_inodes[16];
+//
+//    // Fill in this data
+//    struct file* proc_file = 0;
+//    struct stat st;
+//    for(int i = 0 ; i < 16 ; i++){
+//       proc_file = p->ofile[i];
+//        if(proc_file == 0 || proc_file->type == FD_NONE || proc_file->ref == 0){
+//            free_fds++;
+//        }
+//        else{
+//            filestat(proc_file, &st); // fill st with data about proc_file
+//            total_refs += st.nlink;
+//            //total_refs += proc_file->ref; // TODO: st.nlink or proc_file->ref ?
+//
+//            if(proc_file->readable) readable_fds++;
+//            if(proc_file->writable) writeable_fds++;
+//            // Find out if inode is unique
+//            int unique = 1;
+//            for(int j = 0 ; j < i ; j++){
+//                if(used_inodes[j] == proc_file->ip){
+//                    unique = 0;
+//                    break;
+//                }
+//            }
+//            if(unique){
+//                used_inodes[i] = proc_file->ip;
+//                unique_inode++;
+//            }
+//        }
+//    }
 
     // By this line, we have all the data to print :)
     return 0;
@@ -125,13 +131,12 @@ int handle_filestat(char *buff){
 //  hard links: <number of hardlinks>
 //  blocks used: <number of blocks used in the file, 0 for DEV files>
 int handle_inodeinfo(char *buff){
-    struct inode* current_inode = 0;
-    for(int i = 0 ; i < NINODE ; i++){
-        current_inode = get_inode_array()[i];
-        // File name is itoa(i)
-        // all data needed is in current_inode.
-    }
-
+//    int chars_used = 0;
+//    for(int i = 0 ; i < NINODE ; i++){
+//        // TODO: IMPLEMENT IN fs.c
+//        chars_used =+ get_inode_info(buff, i);
+//    }
+    // TODO: FINISH IMPLEMENTATION HERE!
     return 0;
 }
 
@@ -148,22 +153,24 @@ procfsisdir(struct inode *ip) {
     return 0;
   }
 
-  int inum = ip->inum;
-  // TODO: UPDATE HERE WITH MAPPING!
-//  if (inum == (ninodes+1) || inum == (ninodes+2))
-//    return 0; //blockstat and inodestat are files
-//  return (inum < ninodes || inum % 100 == 0 || inum % 100 == 1);
+//  int inum = ip->inum;
+//  // TODO: UPDATE HERE WITH MAPPING!
+////  if (inum == (ninodes+1) || inum == (ninodes+2))
+////    return 0; //blockstat and inodestat are files
+////  return (inum < ninodes || inum % 100 == 0 || inum % 100 == 1);
   return 0;
 }
 
 //Initialize ip fields.
 // upon call, ip only has an inum in it.
+// if ip in not valid, the inode will be "read from disk"
+// ip->inum is initialized by iget
 void
 procfsiread(struct inode* dp, struct inode *ip) {
   // TODO: IS THIS REALLY IT??? NOTHING ELSE TO BE DONE?!
     // set minor if needed
     // if ip is a dir, set it's size accordingly
-  ip->valid = 1;
+  //ip->valid = 1;
   ip->major = PROCFS;
   ip->type = T_DEV;
 }
@@ -180,6 +187,7 @@ procfsread(struct inode *ip, char *dst, int off, int n) {
 
   // TODO: IMPLEMENT
   // fill in data so that handler could find the PID
+    // int pid = get_pid()
 //  short slot = 0;
 //  if (ip->inum >= ninodes+100){
 //    slot = (ip->inum-ninodes)/100 - 1;
@@ -191,10 +199,11 @@ procfsread(struct inode *ip, char *dst, int off, int n) {
 
 
   procfs_handler handler = get_handler(ip);
-  if(handler == 0) return 0;
+  if(handler == handler_null) return 0;
+    // Handler will fill buff with relevant data and return the number of chars used
 
   chars_used = handler(buff);
-  memmove(dst, buff+off, n);
+  memmove((void*)dst, (void*)(*buff+off), n);
 
   if(chars_used-off < n){
     return chars_used-off;

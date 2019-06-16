@@ -52,12 +52,13 @@ struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
-struct inode*   get_inode_array(void);
+int             get_inode_info(char*, int);
 
 // ide.c
 void            ideinit(void);
 void            ideintr(void);
 void            iderw(struct buf*);
+int             get_ideinfo(char*); // OUR CODE
 
 // ioapic.c
 void            ioapicenable(int irq, int cpu);
@@ -151,6 +152,11 @@ char*           safestrcpy(char*, const char*, int);
 int             strlen(const char*);
 int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
+// Helper functions for string handling. returns the number of added chars.
+int buff_append(char *buff, char *data);
+int buff_append_num(char *buff, int data);
+int buff_append_dirent(char *buff, char * dir, int inum, int dir_offset);
+int itoa(char* string, int num);
 
 // syscall.c
 int             argint(int, int*);
@@ -189,6 +195,8 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
+
+
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

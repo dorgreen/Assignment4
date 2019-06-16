@@ -678,6 +678,13 @@ nameiparent(char *path, char *name)
   return namex(path, 1, name);
 }
 
-struct inode* get_inode_array(void){
-  return &icache;
+// TODO: IMPLEMENT ME!!
+int get_inode_info(char* buff, int index){
+//    struct inode* data = &icache.inode[index];
+//    int char_written = 0;
+        // File name is itoa(i)
+        // all data needed is in current_inode.
+
+
+    return 0;
 }

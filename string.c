@@ -103,3 +103,16 @@ strlen(const char *s)
   return n;
 }
 
+// Helper functions for string handling
+int buff_append(char *buff, char *data){
+  return 0;
+}
+int buff_append_num(char *buff, int data){
+  return 0;
+}
+int buff_append_dirent(char *buff, char * dir, int inum, int dir_offset){
+  return 0;
+}
+int itoa(char* string, int num){
+  return 0;
+} // Num to string. maybe use .format instead
