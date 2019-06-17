@@ -702,7 +702,22 @@ int get_inode_info(char* buff, int index){
     chars_written += buff_append_num(buff, data->inum);
     chars_written += buff_append(buff, "\nis valid: ");
     chars_written += buff_append_num(buff, data->valid);
-    // TODO: HANDLE TYPE!!!!! [much like proc status in procdump]
+    chars_written += buff_append(buff, "\ntype: ");
+    switch(data->type){
+        case T_DIR:
+            chars_written += buff_append(buff, "DIR");
+            break;
+
+        case T_FILE:
+            chars_written += buff_append(buff, "FILE");
+            break;
+
+        case T_DEV:
+            chars_written += buff_append(buff, "DEV");
+            break;
+        default:
+            break;
+    }
     chars_written += buff_append(buff, "\nmajor minor: (");
     chars_written += buff_append_num(buff, data->major);
     chars_written += buff_append(buff, ", ");

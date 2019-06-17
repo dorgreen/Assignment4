@@ -58,7 +58,7 @@ void init_ninodes(struct inode *ip){
   return;
 }
 
-// TODO: IMPLEMENT WHEN WE KNOW HOW TO DO THE MAPPINGS!
+// TODO: TEST
 procfs_handler get_handler(struct inode *ip) {
     int inum = ip->inum;
     if(inum <= ninodes) return handle_root;
@@ -123,7 +123,6 @@ int handle_root(char* buff){
 //Write waiting operations: <Number of write operations>
 //Working blocks: <List (#device,#block) that are currently in the queue separated by the ‘;’
 int handle_ideinfo(char *buff){
-    // TODO: TEST IMPLEMATION IN ide.c
     return get_ideinfo(buff);
 }
 
@@ -134,7 +133,6 @@ int handle_ideinfo(char *buff){
 //  Readable fds: <Readable fd number>
 //  Refs per fds: <ratio of total number of refs / number of used fds>
 int handle_filestat(char *buff){
-    // TODO: TEST IMPLEMANTATION @ file.c
     return get_filestat(buff);
 }
 
