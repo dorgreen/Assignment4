@@ -196,23 +196,25 @@ int get_filestat(char* buff){
       }
     }
   }
+
+  release(&ftable.lock);
   //  Free fds: <free fd number (ref = 0)>
 //  Unique inode fds: <Number of different inodes open by all the fds>
 //  Writeable fds: <Writable fd number>
 //  Readable fds: <Readable fd number>
 //  Refs per fds: <ratio of total number of refs / number of used fds>
   int chars_used = 0;
-  chars_used =+ buff_append(buff,"Unique idnode fds: ");
-  chars_used =+ buff_append_num(buff, unique_inode);
-  chars_used =+ buff_append(buff,"\nWriteable fds: ");
-  chars_used =+ buff_append_num(buff, writeable_fds);
-  chars_used =+ buff_append(buff,"\nReadable fds: ");
-  chars_used =+ buff_append_num(buff, readable_fds);
-  chars_used =+ buff_append(buff,"\nRefs per fds: ");
-  chars_used =+ buff_append_num(buff, total_refs);
-  chars_used =+ buff_append(buff," / ");
-  chars_used =+ buff_append_num(buff, NFILE - free_fds);
-  chars_used =+ buff_append(buff,"\n");
+  chars_used += buff_append(buff,"Unique idnode fds: ");
+  chars_used += buff_append_num(buff, unique_inode);
+  chars_used += buff_append(buff,"\nWriteable fds: ");
+  chars_used += buff_append_num(buff, writeable_fds);
+  chars_used += buff_append(buff,"\nReadable fds: ");
+  chars_used += buff_append_num(buff, readable_fds);
+  chars_used += buff_append(buff,"\nRefs per fds: ");
+  chars_used += buff_append_num(buff, total_refs);
+  chars_used += buff_append(buff," / ");
+  chars_used += buff_append_num(buff, NFILE - free_fds);
+  chars_used += buff_append(buff,"\n");
 
   return chars_used;
 }

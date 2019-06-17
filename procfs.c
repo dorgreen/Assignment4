@@ -178,7 +178,7 @@ int handle_inodeinfo(char *buff){
 int handle_inodeinfo_entry(char* buff){
     int entry = (int) buff[0];
     buff[0] = 0;
-    return get_inode_info(buff, entry);
+    return get_inode_info(buff, entry - INODEINFO - 1);
 }
 
 // Creates the PID's dir with files "name" and "status"

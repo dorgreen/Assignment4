@@ -138,13 +138,8 @@ int buff_append(char *buff, char *data){
 }
 int buff_append_num(char *buff, int data){
     char int_buff[4] = {0};
-    int chars_used = itoa(int_buff, data);
+    itoa(int_buff, data);
     int chars_written = buff_append(buff, int_buff);
-    if(chars_used < chars_written){
-        return chars_written;
-    }
-    else{
-        return chars_written;
-    }
+    return chars_written;
 }
 
