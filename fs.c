@@ -745,3 +745,16 @@ void get_used_inode_count(int dest[NINODE]){
     release(&icache.lock);
     return;
 }
+
+int buff_append_dirent(char *buff, char * dir, int inum, int dir_offset){
+    // Setup a dirent struct and fill it with the data.
+    // We're using buff essentially as void*
+    struct dirent newdir;
+    newdir.inum = inum;
+    memmove(&newdir.name, dir, strlen(dir)+1);
+    int sz = sizeof(newdir);
+
+    // copy this struct's data onto buffer
+    memmove(buff + (dir_offset * sz) , (void*)&newdir , sz);
+    return sz;
+}

@@ -55,6 +55,7 @@ void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
 int             get_inode_info(char*, int);
 void get_used_inode_count(int*);
+int buff_append_dirent(char *, char *, int, int);
 
 // ide.c
 void            ideinit(void);
@@ -159,10 +160,9 @@ int             strlen(const char*);
 int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
 // Helper functions for string handling. returns the number of added chars.
-int buff_append(char *buff, char *data);
-int buff_append_num(char *buff, int data);
-int buff_append_dirent(char *buff, char * dir, int inum, int dir_offset);
-int itoa(char* string, int num);
+int buff_append(char *, char *);
+int buff_append_num(char *, int);
+int itoa(char* , int);
 
 // syscall.c
 int             argint(int, int*);

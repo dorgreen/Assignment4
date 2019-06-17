@@ -103,17 +103,48 @@ strlen(const char *s)
   return n;
 }
 
-// TODO: IMPLEMENT MEEEEEEEE
+// TODO: TEST ME!
 // Helper functions for string handling
+
+int itoa(char* string, int num){
+    // TODO: REFACTOR
+    // TODO: CHECK RETURN VALUE FOR CORRECTNESS
+    int i = 0;
+    int len = 0;
+    if (num == 0){
+        string[0] = '0';
+        return 1;
+    }
+
+    while(num != 0){
+        string[len] = num % 10 + '0';
+        num = num / 10;
+        len++;
+    }
+    for(i = 0; i < len/2; i++){
+        char tmp = string[i];
+        string[i] = string[len - 1 - i];
+        string[len - 1 - i] = tmp;
+    }
+    return len;
+}
+
 int buff_append(char *buff, char *data){
-  return 0;
+    int current_length = strlen(buff);
+    int length_to_add = strlen(data);
+
+    memmove(buff + current_length, data, length_to_add);
+    return length_to_add;
 }
 int buff_append_num(char *buff, int data){
-  return 0;
+    char int_buff[4] = {0};
+    int chars_used = itoa(int_buff, data);
+    int chars_written = buff_append(buff, int_buff);
+    if(chars_used < chars_written){
+        return chars_written;
+    }
+    else{
+        return chars_written;
+    }
 }
-int buff_append_dirent(char *buff, char * dir, int inum, int dir_offset){
-  return 0;
-}
-int itoa(char* string, int num){
-  return 0;
-} // Num to string. maybe use .format instead
+
