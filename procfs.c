@@ -42,6 +42,7 @@ int handle_inodeinfo_entry(char *buff); // Fill the file for the entry with inde
 int handle_pid_dirent(char *buff); // Creates the PID's dir with files "name" and "status"
 int handle_pid_name(char *buff);
 int handle_pid_status(char *buff);
+
 int handler_null(char *buff){
     return 0;
 }
@@ -248,7 +249,14 @@ procfsiread(struct inode* dp, struct inode *ip) {
   // TODO: IS THIS REALLY IT??? NOTHING ELSE TO BE DONE?!
     // set minor if needed
     // if ip is a dir, set it's size accordingly
-    ip->valid = 1;
+    if(!procfsisdir(ip)){
+        ip->valid = 1;
+    }
+    else{
+        if(ip->inum < ninodes){ // /proc entry
+            ip->size = 555; // TODO: DEBUG
+        }
+    }
     ip->major = PROCFS;
     ip->type = T_DEV;
 }
@@ -280,7 +288,7 @@ procfsread(struct inode *ip, char *dst, int off, int n) {
 
 
     chars_used = handler(buff);
-    memmove((void*)dst, (void*)(*buff+off), n);
+    memmove((void*)dst, (void*)(buff+off), n);
 
     if(chars_used-off < n){
       return chars_used-off;
