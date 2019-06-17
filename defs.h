@@ -33,6 +33,7 @@ void            fileinit(void);
 int             fileread(struct file*, char*, int n);
 int             filestat(struct file*, struct stat*);
 int             filewrite(struct file*, char*, int n);
+int get_filestat(char*); // OUR CODE
 
 // fs.c
 void            readsb(int dev, struct superblock *sb);
@@ -53,6 +54,7 @@ int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
 int             get_inode_info(char*, int);
+void get_used_inode_count(int*);
 
 // ide.c
 void            ideinit(void);
@@ -122,6 +124,10 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+int get_pid(int);  // Data getters for PROCFS
+void get_used_procs(int*);  // Data getters for PROCFS
+int get_proc_name(int, char*);  // Data getters for PROCFS
+int get_proc_status(int, char*);  // Data getters for PROCFS
 
 // procfs.c
 void            procfsinit(void);

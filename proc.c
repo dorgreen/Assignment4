@@ -532,3 +532,72 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int get_pid(int proctable_index){
+  acquire(&ptable.lock);
+  int ans = 0;
+  if(proctable_index < NPROC && ptable.proc[proctable_index].state != UNUSED){
+    ans = ptable.proc[proctable_index].pid;
+  }
+  else{
+    ans = -1;
+  }
+  release(&ptable.lock);
+  return ans;
+}
+
+void get_used_procs(int* result){
+  acquire(&ptable.lock);
+
+  for(int i = 0 ; i < NPROC ; i++){
+    if(ptable.proc[i].state != UNUSED){
+      result[i] = ptable.proc[i].pid;
+    }
+    else result[i] = 0;
+  }
+
+  release(&ptable.lock);
+  return;
+}
+
+int get_proc_name(int index, char* dest){
+  if(index >= NPROC || index < 0 || ptable.proc[index].state == UNUSED){
+    return 0;
+  }
+
+  acquire(&ptable.lock);
+   int chars_to_write = buff_append(dest, ptable.proc[index].name);
+  release(&ptable.lock);
+
+  return chars_to_write;
+}
+
+// Outputs state and memory usage
+int get_proc_status(int index, char* dest){
+  if(index >= NPROC || index < 0 || ptable.proc[index].state == UNUSED){
+    return 0;
+  }
+
+  // Each is of length 6 !
+  static char *states[] = {
+          [UNUSED]    "unused",
+          [EMBRYO]    "embryo",
+          [SLEEPING]  "sleep ",
+          [RUNNABLE]  "runble",
+          [RUNNING]   "run   ",
+          [ZOMBIE]    "zombie"
+  };
+
+  acquire(&ptable.lock);
+
+  int chars_to_write = 0;
+
+  chars_to_write += buff_append(dest , "State: ");
+  chars_to_write += buff_append(dest, states[ptable.proc[index].state]);
+  chars_to_write += buff_append(dest, "\n Memory used:");
+  chars_to_write += buff_append_num(dest, ptable.proc[index].sz);
+  chars_to_write += buff_append(dest, "\n");
+
+  release(&ptable.lock);
+  return chars_to_write;
+}

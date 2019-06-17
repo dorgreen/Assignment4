@@ -155,3 +155,64 @@ filewrite(struct file *f, char *addr, int n)
   panic("filewrite");
 }
 
+// a FILE with data from FD table @ file.c
+// @PROCFS
+// TODO: TEST
+// TODO: SHOULD WE USE THE STRUCT STAT (stat.h , field nlink) here? [fill it with filestat()]
+int get_filestat(char* buff){
+  int free_fds = 0;
+  int writeable_fds = 0;
+  int readable_fds = 0;
+  int total_refs = 0;
+  int unique_inode = 0;
+  struct inode* used_inodes[NFILE];
+
+  // Fill in this data
+  struct file* this_file = 0;
+
+  acquire(&ftable.lock);
+
+  for(int i = 0 ; i < NFILE ; i++){
+    this_file = &ftable.file[i];
+    if(this_file == 0 || this_file->type == FD_NONE || this_file->ref == 0){
+      free_fds++;
+    }
+    else{
+      total_refs += this_file->ref; // TODO: st.nlink or proc_file->ref ?
+
+      if(this_file->readable) readable_fds++;
+      if(this_file->writable) writeable_fds++;
+      // Find out if inode is unique
+      int unique = 1;
+      for(int j = 0 ; j < unique_inode ; j++){
+        if(used_inodes[j] == this_file->ip){
+          unique = 0;
+          break;
+        }
+      }
+      if(unique){
+        used_inodes[unique_inode] = this_file->ip;
+        unique_inode++;
+      }
+    }
+  }
+  //  Free fds: <free fd number (ref = 0)>
+//  Unique inode fds: <Number of different inodes open by all the fds>
+//  Writeable fds: <Writable fd number>
+//  Readable fds: <Readable fd number>
+//  Refs per fds: <ratio of total number of refs / number of used fds>
+  int chars_used = 0;
+  chars_used =+ buff_append(buff,"Unique idnode fds: ");
+  chars_used =+ buff_append_num(buff, unique_inode);
+  chars_used =+ buff_append(buff,"\nWriteable fds: ");
+  chars_used =+ buff_append_num(buff, writeable_fds);
+  chars_used =+ buff_append(buff,"\nReadable fds: ");
+  chars_used =+ buff_append_num(buff, readable_fds);
+  chars_used =+ buff_append(buff,"\nRefs per fds: ");
+  chars_used =+ buff_append_num(buff, total_refs);
+  chars_used =+ buff_append(buff," / ");
+  chars_used =+ buff_append_num(buff, NFILE - free_fds);
+  chars_used =+ buff_append(buff,"\n");
+
+  return chars_used;
+}

@@ -103,6 +103,7 @@ strlen(const char *s)
   return n;
 }
 
+// TODO: IMPLEMENT MEEEEEEEE
 // Helper functions for string handling
 int buff_append(char *buff, char *data){
   return 0;

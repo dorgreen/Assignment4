@@ -678,13 +678,55 @@ nameiparent(char *path, char *name)
   return namex(path, 1, name);
 }
 
-// TODO: IMPLEMENT ME!!
+// A file with data about the inode who's index is given
+// file contents:
+//  Device: <device the inode belongs to>
+//  Inode number: <inode number in the device>
+//  is valid: <0 for no, 1 for yes>
+//  type: <DIR, FILE or DEV>
+//  major minor: <(major number, minor number)>
+//  hard links: <number of hardlinks>
+//  blocks used: <number of blocks used in the file, 0 for DEV files>
+// TODO: TEST
 int get_inode_info(char* buff, int index){
-//    struct inode* data = &icache.inode[index];
-//    int char_written = 0;
-        // File name is itoa(i)
-        // all data needed is in current_inode.
+    int chars_written = 0;
+    if(index < 0 || index > NINODE){
+        return 0;
+    }
 
+    acquire(&icache.lock);
+    struct inode* data = &icache.inode[index];
+    chars_written += buff_append(buff, "Device: ");
+    chars_written += buff_append_num(buff, data->dev);
+    chars_written += buff_append(buff, "\nInode number: ");
+    chars_written += buff_append_num(buff, data->inum);
+    chars_written += buff_append(buff, "\nis valid: ");
+    chars_written += buff_append_num(buff, data->valid);
+    // TODO: HANDLE TYPE!!!!! [much like proc status in procdump]
+    chars_written += buff_append(buff, "\nmajor minor: (");
+    chars_written += buff_append_num(buff, data->major);
+    chars_written += buff_append(buff, ", ");
+    chars_written += buff_append_num(buff, data->minor);
+    chars_written += buff_append(buff, ")");
+    chars_written += buff_append(buff, "\nhard links: ");
+    chars_written += buff_append_num(buff, data->nlink);
+    chars_written += buff_append(buff, "\nblocks used: ");
+    int blocks = (data->type == T_DEV) ? 0 : data->size;
+    // TODO: maybe size/sizeofblock?????
+    chars_written += buff_append_num(buff, blocks);
+    chars_written += buff_append(buff, "\n");
 
-    return 0;
+    release(&icache.lock);
+    return chars_written;
+}
+
+void get_used_inode_count(int dest[NINODE]){
+    acquire(&icache.lock);
+    for(int i = 0 ; i < NINODE ; i++){
+        if(icache.inode[i].valid == 1){
+            dest[i] = 1;
+        }
+    }
+    release(&icache.lock);
+    return;
 }

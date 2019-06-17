@@ -173,21 +173,54 @@ iderw(struct buf *b)
 //Write waiting operations: <Number of write operations>
 //Working blocks: <List (#device,#block) that are currently in the queue separated by the ‘;’
 int get_ideinfo(char *buff){
-  // TODO: IMPLEMENT!!!!
-//  struct buf* queue_item = idequeue;
-//  int read_wait = 0;
-//  int write_wait = 0;
-//  int wait_ops = 0;
-//  int working_blocks = 0;
-  // queue_item to the buf now being read/written to the disk.
-  // queue_item->gnext is the next one to be proccessed
-//    B_VALID == 0 ===> read_wait++
-//    B_DIRTY == 1 ===> write_wait++
+  // TODO: TEST!!!
+    struct buf* queue_item;
+    int read_wait = 0;
+    int write_wait = 0;
+    int wait_ops = 0;
+    int chars_used = 0;
 
-//    while(1){
-//        if(queue_item != 0){
-//
-//        }
-//    }
-  return 0;
+    acquire(&idelock);
+
+    queue_item = idequeue;
+    //   queue_item is the buf now being read/written to the disk.
+    //   queue_item->gnext is the next one to be proccessed
+    // first iterate to get accumulated values. We'll iterate again for list of blocks
+    while(1){
+        if(queue_item == 0) break;
+
+        wait_ops++;
+        if((queue_item->flags & B_VALID) == 0){
+            read_wait++;
+        }
+        if(queue_item->flags & B_DIRTY){
+            write_wait++;
+        }
+        queue_item = queue_item->qnext;
+    }
+   chars_used += buff_append(buff, "Waiting operations: ");
+   chars_used += buff_append_num(buff, wait_ops);
+   chars_used += buff_append(buff, "\nRead waiting operations: ");
+   chars_used += buff_append_num(buff, read_wait);
+   chars_used += buff_append(buff, "\nWrite waiting operations: ");
+   chars_used += buff_append_num(buff, write_wait);
+   chars_used += buff_append(buff, "\nWorking blocks: \n");
+
+    // iterate again over list of blocks to print (device_no , block_no) pairs
+    queue_item = idequeue;
+    while(1){
+        if(queue_item == 0) break;
+        chars_used += buff_append(buff, "(");
+        chars_used += buff_append_num(buff, queue_item->dev);
+        chars_used += buff_append(buff, ",");
+        chars_used += buff_append_num(buff, queue_item->blockno);
+        chars_used += buff_append(buff, ") ; ");
+
+        queue_item = queue_item->qnext;
+    }
+    chars_used += buff_append(buff, "\n");
+
+    release(&idelock);
+
+    return chars_used;
 }
