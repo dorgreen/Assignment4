@@ -153,12 +153,14 @@ int handle_inodeinfo(char *buff){
 
     // Actual files on root
     char index_buffer[4] = {0}; // Needed to stringify PID
+    //char path_buffer[64] = {0}; // will hold the path to this
     for(int i = 0 ; i < NINODE ; i++){
         if(used_inode_indcies[i] == 0) continue;
 
         // reset, then fill index_buffer
         memset(index_buffer, 0 , 4);
-        itoa(index_buffer, used_inode_indcies[i]);
+        itoa(index_buffer, i);
+
         // CREATE DIR ENTRY
         chars_used += buff_append_dirent(buff, index_buffer, ninodes + INODEINFO+1+i, ++index);
     }
@@ -178,7 +180,7 @@ int handle_inodeinfo(char *buff){
 int handle_inodeinfo_entry(char* buff){
     int entry = (int) buff[0];
     buff[0] = 0;
-    return get_inode_info(buff, entry - INODEINFO - 1);
+    return get_inode_info(buff, entry);
 }
 
 // Creates the PID's dir with files "name" and "status"
