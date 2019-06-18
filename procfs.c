@@ -55,7 +55,7 @@ void init_ninodes(struct inode *ip){
 
   struct superblock sb;
   readsb(ip->dev, &sb);
-  ninodes = sb.ninodes;
+  ninodes = 2 * sb.ninodes;
   return;
 }
 
@@ -67,9 +67,9 @@ procfs_handler get_handler(struct inode *ip) {
     if(inum == ninodes + FILESTAT) return handle_filestat;
     if(inum == ninodes + INODEINFO) return handle_inodeinfo;
     if(inum > ninodes + INODEINFO && inum < ninodes + PID) return handle_inodeinfo_entry;
-    if(inum > ninodes + PID && ((inum-ninodes)%PID == 0)) return handle_pid_dirent;
-    if(inum > ninodes + PID && ((inum-ninodes)%PID == 1)) return handle_pid_name;
-    if(inum > ninodes + PID && ((inum-ninodes)%PID == 2)) return handle_pid_status;
+    if((inum-ninodes)%PID == 0) return handle_pid_dirent;
+    if((inum-ninodes)%PID == 1) return handle_pid_name;
+    if((inum-ninodes)%PID == 2) return handle_pid_status;
 
     return handler_null;
 }
@@ -188,6 +188,11 @@ int handle_pid_dirent(char *buff){
     int ptable_index = buff[0];
     buff[0] = 0;
 
+    if(ptable_index < 0 || ptable_index >= NPROC){
+        cprintf("unexpected proc index %d", ptable_index); // TODO DEBUG ONLY
+        return 0;
+    }
+
     int chars_used = 0;
     int index = 0; // for direntry creation
     char path_buffer[32] = {0}; // for "." path
@@ -196,12 +201,12 @@ int handle_pid_dirent(char *buff){
     buff_append_num(path_buffer, get_pid(ptable_index));
 
     // add . and ..
-    chars_used += buff_append_dirent(buff, ".", namei(path_buffer)->inum, index);
+    chars_used += buff_append_dirent(buff, ".", ninodes + PID + (ptable_index * PID), index);
     chars_used += buff_append_dirent(buff, "..", namei("/proc")->inum, ++index);
 
     // Actual files on root
-    chars_used += buff_append_dirent(buff, "name", ninodes + 1 + ((1+ptable_index) * PID) , ++index);
-    chars_used += buff_append_dirent(buff, "status", ninodes + 2 + ((1+ptable_index) * PID), ++index);
+    chars_used += buff_append_dirent(buff, "name", ninodes + PID + 1 + (ptable_index * PID) , ++index);
+    chars_used += buff_append_dirent(buff, "status", ninodes + PID + 2 + (ptable_index * PID), ++index);
 
     return chars_used;
 }
@@ -241,7 +246,7 @@ procfsisdir(struct inode *ip) {
     // case: inodeinfo
     if(inum == ninodes + INODEINFO) return 1;
     // case: a dir for some proc i
-    if(inum - ninodes >= PID && (inum-ninodes % PID == 0)) return 1;
+    if(inum - ninodes >= PID && ((inum - ninodes) % PID == 0)) return 1;
 
     return 0;
 }
@@ -252,19 +257,8 @@ procfsisdir(struct inode *ip) {
 // ip->inum is initialized by iget
 void
 procfsiread(struct inode* dp, struct inode *ip) {
-  // TODO: IS THIS REALLY IT??? NOTHING ELSE TO BE DONE?!
-    // set minor if needed
-    // if ip is a dir, set it's size accordingly
-    if(!procfsisdir(ip)){
-        ip->valid = 1;
-    }
-    else{
-        if(ip->inum < ninodes){ // /proc entry
-            ip->size = 555; // TODO: DEBUG
-        }
-        //ip->type = T_DIR;
-    }
-    ip->major = PROCFS;
+    ip->valid = 1; // won't be read from disk
+    ip->major = PROCFS; // will be read by procfs
     ip->type = T_DEV;
 }
 
@@ -290,9 +284,8 @@ procfsread(struct inode *ip, char *dst, int off, int n) {
 
     else if(handler == handle_pid_dirent || handler == handle_pid_name || handler == handle_pid_status){
         // Set first char of buff to be the ptable index of requested proc
-        buff[0] = (char) (ip->inum - ninodes) / PID;
+        buff[0] = (char) ((ip->inum - ninodes - PID) / PID);
     }
-
 
     chars_used = handler(buff);
     memmove((void*)dst, (void*)(buff+off), n);
