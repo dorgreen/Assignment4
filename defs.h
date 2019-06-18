@@ -53,7 +53,7 @@ struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
-int             get_inode_info(char*, int);
+int   get_inode_info(char*, int);
 void get_used_inode_count(int*);
 int buff_append_dirent(char *, char *, int, int);
 

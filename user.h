@@ -37,4 +37,6 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
-
+int buff_append(char *, char *);
+int buff_append_num(char *, int);
+int itoa(char* , int);

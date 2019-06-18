@@ -696,6 +696,10 @@ int get_inode_info(char* buff, int index){
 
     acquire(&icache.lock);
     struct inode* data = &icache.inode[index];
+    if(data->type == 0){
+      release(&icache.lock);
+      return 0;
+    }
     chars_written += buff_append(buff, "Device: ");
     chars_written += buff_append_num(buff, data->dev);
     chars_written += buff_append(buff, "\nInode number: ");
