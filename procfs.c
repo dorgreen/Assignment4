@@ -148,8 +148,8 @@ int handle_inodeinfo(char *buff){
     int index = 0; // for direntry creation
 
     // add . and ..
-    chars_used += buff_append_dirent(buff, ".", namei("/proc/")->inum, index);
-    chars_used += buff_append_dirent(buff, "..", namei("")->inum, ++index);
+    chars_used += buff_append_dirent(buff, ".", namei("/proc/inodeinfo")->inum, index);
+    chars_used += buff_append_dirent(buff, "..", namei("/proc")->inum, ++index);
 
     // Actual files on root
     char index_buffer[4] = {0}; // Needed to stringify PID
@@ -190,10 +190,14 @@ int handle_pid_dirent(char *buff){
 
     int chars_used = 0;
     int index = 0; // for direntry creation
+    char path_buffer[32] = {0}; // for "." path
+
+    buff_append(path_buffer, "/proc/");
+    buff_append_num(path_buffer, get_pid(ptable_index));
 
     // add . and ..
-    chars_used += buff_append_dirent(buff, ".", namei("/proc")->inum, index);
-    chars_used += buff_append_dirent(buff, "..", namei("")->inum, ++index);
+    chars_used += buff_append_dirent(buff, ".", namei(path_buffer)->inum, index);
+    chars_used += buff_append_dirent(buff, "..", namei("/proc")->inum, ++index);
 
     // Actual files on root
     chars_used += buff_append_dirent(buff, "name", ninodes + 1 + ((1+ptable_index) * PID) , ++index);
@@ -202,7 +206,7 @@ int handle_pid_dirent(char *buff){
     return chars_used;
 }
 
-// fill in the file /name
+// fill in the file proc/PID/name
 int handle_pid_name(char *buff){
     int ptable_index = buff[0];
     buff[0] = 0;
@@ -210,7 +214,7 @@ int handle_pid_name(char *buff){
     return get_proc_name(ptable_index, buff);
 }
 
-// fill in the file /status
+// fill in the file proc/PID/status
 int handle_pid_status(char *buff){
     int ptable_index = buff[0];
     buff[0] = 0;
@@ -258,6 +262,7 @@ procfsiread(struct inode* dp, struct inode *ip) {
         if(ip->inum < ninodes){ // /proc entry
             ip->size = 555; // TODO: DEBUG
         }
+        //ip->type = T_DIR;
     }
     ip->major = PROCFS;
     ip->type = T_DEV;
